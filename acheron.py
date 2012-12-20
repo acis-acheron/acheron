@@ -29,6 +29,10 @@ class Acheron(Daemon):
             todo = self.ipop_listener.recv(16).strip()
             self.styx_socket.sendall(self.format_for_styx('{"jsonrpc":"2.0", "method":"version", "params":["xx"], "id":0}'))
             result = self.styx_socket.recv(4096)
+            f = open('/var/log/acheron.log', 'a+')
+            print >> f, 'todo = ', todo, 'result = ', result
+            f.flush()
+            f.close()
             # send styx message
             # acknowledge reply
             
