@@ -35,10 +35,6 @@ class Acheron(Daemon):
             f.close()
             # send styx message
             # acknowledge reply
-
-if __name__ == '__main__':
-	a = Acheron()
-	a.start()
             
         
         

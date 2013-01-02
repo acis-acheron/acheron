@@ -3,4 +3,4 @@
 from acheron import Acheron
 
 a = Acheron('/var/run/acheron.pid')
-a.run()
+a.start()
