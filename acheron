@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+from acheron import Acheron
+
+a = Acheron('/var/run/acheron.pid')
+a.run()
