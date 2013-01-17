@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
 from acheron import Acheron
+import logging
 
-a = Acheron('/var/run/acheron.pid')
+logging.basicConfig(
+    filename='/var/log/acheron.log',
+    filemode='a+',
+    level=logging.DEBUG,
+)
+a = Acheron('/var/run/acheron.pid', stdout="/dev/stdout", stderr="/dev/stderr")
 a.start()
