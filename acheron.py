@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from daemon import Daemon
 import socket
 import sys
 import json
 import logging
+
+from daemon import Daemon
+import config
 
 log = logging.getLogger('acheron')
 
@@ -17,7 +19,11 @@ class Acheron(Daemon):
     @staticmethod
     def format_for_styx(msg):
         msg = json.dumps(msg)
-        return msg + ' '*(4095-len(msg)) + '\0'
+        if config.styx_message_length > 0:
+            padding = ' ' * (config.styx_message_length-1-len(msg)) + '\0'
+        else:
+            padding = ''
+        return msg + padding
 
     def styx_call(self, method, *args):
         self.styx_socket.sendall(self.format_for_styx({
@@ -36,7 +42,7 @@ class Acheron(Daemon):
         except:
             log.critical('error creating IPOP socket')
             sys.exit(1)
-        self.ipop_listener.bind(('127.0.0.1', 55123))
+        self.ipop_listener.bind((config.ipop_host, config.ipop_port))
 
         try:
             self.styx_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -44,10 +50,8 @@ class Acheron(Daemon):
             log.critical('error creating Styx socket')
             sys.exit(1)
 
-        # TODO: parse the strongswan config file for the styx socket path
-        socket_filename = '/var/run/styx.sock'
         try:
-            self.styx_socket.connect(socket_filename)
+            self.styx_socket.connect(config.styx_unix_socket_path)
         except:
             log.critical('error connecting to styx socket. %s does not exist.' %
                          socket_filename)
