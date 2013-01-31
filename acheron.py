@@ -54,7 +54,7 @@ class Acheron(Daemon):
             self.styx_socket.connect(config.styx_unix_socket_path)
         except:
             log.critical('error connecting to styx socket. %s does not exist.' %
-                         socket_filename)
+                         config.styx_unix_socket_path)
             sys.exit(1)
 
         while True:
