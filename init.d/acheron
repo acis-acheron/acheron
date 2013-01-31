@@ -1,0 +1,12 @@
+### BEGIN INIT INFO
+# Provides:          acheron
+# Required-Start:    $syslog $localfs $network $named ipop
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: A configuration daemon for strongswan and groupvpn
+# Description:       A configuration daemon for strongswan and groupvpn
+### END INIT INFO
+
+ACHERON=/opt/acheron/acheron
+
+$ACHERON "$@"
