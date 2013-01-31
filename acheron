@@ -1,12 +1,32 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from acheron import Acheron
 import logging
+import sys
 
 logging.basicConfig(
     filename='/var/log/acheron.log',
     filemode='a+',
     level=logging.DEBUG,
 )
+
 a = Acheron('/var/run/acheron.pid', stdout="/dev/stdout", stderr="/dev/stderr")
-a.start()
+
+if not sys.argv[1:]:
+    print('acheron: error: no command supplied', file=sys.stderr)
+    sys.exit(1)
+
+command = sys.argv[1]
+if 'start' == command:
+    a.start()
+elif 'stop' == command:
+    a.stop()
+elif command in ('restart', 'force-reload'):
+    a.restart()
+elif 'status' == command:
+    try:
+        with open('/var/run/acheron.pid', 'r') as f:
+            print('acheron: daemon is running with pid %s' % f.read().strip())
+    except:
+        print('acheron: daemon is not running')
