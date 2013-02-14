@@ -26,16 +26,18 @@ class Acheron(Daemon):
         return msg + padding
 
     def styx_call(self, method, *args):
-        self.styx_socket.sendall(self.format_for_styx({
+        msg = self.format_for_styx({
             'jsonrpc': '2.0',
             'method': method,
             'params': [json.dumps(a) for a in args],
             'id': self.styx_id,
-        }))
+        })
+        self.styx_socket.sendall(msg)
         self.styx_id += 1
+        log.info('sent message to Styx: %s' % msg)
 
     def run(self):
-        log.info('Starting daemon')
+        log.info('starting daemon')
         try:
             self.ipop_listener = socket.socket(socket.AF_INET,
                                                socket.SOCK_DGRAM)
@@ -53,16 +55,18 @@ class Acheron(Daemon):
         try:
             self.styx_socket.connect(config.styx_unix_socket_path)
         except:
-            log.critical('error connecting to styx socket. %s does not exist.' %
+            log.critical('error connecting to Styx socket. %s does not exist' %
                          config.styx_unix_socket_path)
             sys.exit(1)
 
         while True:
             # alternatively, push to queue, peek, pop when confirmation received
-            todo = self.ipop_listener.recv(16).strip()
+            addr = self.ipop_listener.recv(16).strip()
 
-            self.styx_call('version', 'xx')
+            self.styx_call('addConfig',
+                           ['localhost',
+                            addr,
+                            ['keyexchange=ikev2', 'auto=start']])
             result = self.styx_socket.recv(4096)
-            log.info('todo = %s, result = %s', todo, result)
-            # send styx message
+            log.info('received message from Styx: %s' % result)
             # acknowledge reply
