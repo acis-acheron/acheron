@@ -53,6 +53,7 @@ class Acheron(Daemon):
             addr = self.ipop_listener.recv(16).strip()
 
             self.styx.addConfig(
+                'conn_%d' % self.styx.message_id,
                 self.ipop_addr,
                 addr,
                 'keyexchange=ikev2'
