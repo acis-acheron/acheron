@@ -86,7 +86,7 @@ class Acheron(Daemon):
             self.styx_call('addConfig',
                            [self.ipop_addr,
                             addr,
-                            'keyexchange=ikev2'])
+                            ['keyexchange=ikev2']])
             result = self.styx_socket.recv(4096)
             log.info('received message from Styx: %s' % result)
             # acknowledge reply
