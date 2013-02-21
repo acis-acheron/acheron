@@ -36,14 +36,14 @@ class Styx(object):
         return msg + padding
 
     def call(self, method, *args):
-        msg = self.format({
+        msg = {
             'jsonrpc': '2.0',
             'method': method,
-            'params': [json.dumps(a) for a in args],
+            'params': args,
             'id': self.message_id,
-        })
-
-        self.socket.sendall(msg)
+        }
+        
+        self.socket.sendall(self.format(msg))
         self.message_id += 1
         log.info('sent message to Styx: %s' % msg)
 
@@ -56,5 +56,5 @@ class Styx(object):
         Allows you to do something like: ``myStyxObj.addConfig(...)``, which
         will in return use :meth:`call`.
         '''
-        def f(*args):
-            return self.call(method, *args)
+        return lambda *args: self.call(method, *args)
+        
