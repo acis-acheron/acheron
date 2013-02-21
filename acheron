@@ -17,16 +17,10 @@ if not sys.argv[1:]:
     print('acheron: error: no command supplied', file=sys.stderr)
     sys.exit(1)
 
-command = sys.argv[1]
-if 'start' == command:
-    a.start()
-elif 'stop' == command:
-    a.stop()
-elif command in ('restart', 'force-reload'):
-    a.restart()
-elif 'status' == command:
-    try:
-        with open('/var/run/acheron.pid', 'r') as f:
-            print('acheron: daemon is running with pid %s' % f.read().strip())
-    except:
-        print('acheron: daemon is not running')
+{
+    'start': a.start,
+    'stop': a.stop,
+    'restart': a.restart,
+    'force-reload': a.restart,
+    'status': a.status
+}[sys.argv[1]]()

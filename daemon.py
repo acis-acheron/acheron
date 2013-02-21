@@ -131,3 +131,10 @@ class Daemon:
         start() or restart().
         '''
         raise NotImplementedError
+
+    def status(self):
+        try:
+            with open(self.pidfile, 'r') as f:
+                print('acheron: daemon is running with pid %s' % f.read().strip())
+        except:
+            print('acheron: daemon is not running')
