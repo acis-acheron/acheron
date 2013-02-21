@@ -5,6 +5,10 @@ import socket
 import sys
 import json
 import logging
+import fcntl
+import struct
+import array
+import time
 
 from daemon import Daemon
 import config
@@ -15,6 +19,15 @@ class Acheron(Daemon):
     def __init__(self, *args, **kwargs):
         Daemon.__init__(self, *args, **kwargs)
         self.styx_id = 0
+
+    @staticmethod
+    def get_ip_address(ifname):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return socket.inet_ntoa(fcntl.ioctl(
+                s.fileno(),
+                0x8915,  # SIOCGIFADDR
+                struct.pack('256s', ifname[:15])
+               )[20:24])
 
     @staticmethod
     def format_for_styx(msg):
@@ -38,6 +51,13 @@ class Acheron(Daemon):
 
     def run(self):
         log.info('starting daemon')
+        try:
+            self.ipop_addr = self.get_ip_address('tapipop')
+        except IOError:
+            log.critical('error finding our IPOP address. Sleeping.')
+            time.sleep(1.0)
+            self.run()
+        
         try:
             self.ipop_listener = socket.socket(socket.AF_INET,
                                                socket.SOCK_DGRAM)
@@ -64,9 +84,9 @@ class Acheron(Daemon):
             addr = self.ipop_listener.recv(16).strip()
 
             self.styx_call('addConfig',
-                           ['localhost',
+                           [self.ipop_addr,
                             addr,
-                            ['keyexchange=ikev2', 'auto=start']])
+                            'keyexchange=ikev2'])
             result = self.styx_socket.recv(4096)
             log.info('received message from Styx: %s' % result)
             # acknowledge reply
