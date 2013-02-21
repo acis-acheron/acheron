@@ -11,6 +11,7 @@ import array
 import time
 
 from daemon import Daemon
+from styx import Styx
 import config
 
 log = logging.getLogger('acheron')
@@ -18,7 +19,7 @@ log = logging.getLogger('acheron')
 class Acheron(Daemon):
     def __init__(self, *args, **kwargs):
         Daemon.__init__(self, *args, **kwargs)
-        self.styx_id = 0
+        self.styx = Styx(config.styx_unix_socket_path)
 
     @staticmethod
     def get_ip_address(ifname):
@@ -29,25 +30,6 @@ class Acheron(Daemon):
                 struct.pack('256s', ifname[:15])
                )[20:24])
 
-    @staticmethod
-    def format_for_styx(msg):
-        msg = json.dumps(msg)
-        if config.styx_message_length > 0:
-            padding = ' ' * (config.styx_message_length-1-len(msg)) + '\0'
-        else:
-            padding = ''
-        return msg + padding
-
-    def styx_call(self, method, *args):
-        msg = self.format_for_styx({
-            'jsonrpc': '2.0',
-            'method': method,
-            'params': [json.dumps(a) for a in args],
-            'id': self.styx_id,
-        })
-        self.styx_socket.sendall(msg)
-        self.styx_id += 1
-        log.info('sent message to Styx: %s' % msg)
 
     def run(self):
         log.info('starting daemon')
@@ -66,27 +48,12 @@ class Acheron(Daemon):
             sys.exit(1)
         self.ipop_listener.bind((config.ipop_host, config.ipop_port))
 
-        try:
-            self.styx_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        except:
-            log.critical('error creating Styx socket')
-            sys.exit(1)
-
-        try:
-            self.styx_socket.connect(config.styx_unix_socket_path)
-        except:
-            log.critical('error connecting to Styx socket. %s does not exist' %
-                         config.styx_unix_socket_path)
-            sys.exit(1)
-
         while True:
             # alternatively, push to queue, peek, pop when confirmation received
             addr = self.ipop_listener.recv(16).strip()
 
-            self.styx_call('addConfig',
-                           [self.ipop_addr,
-                            addr,
-                            ['keyexchange=ikev2']])
-            result = self.styx_socket.recv(4096)
-            log.info('received message from Styx: %s' % result)
-            # acknowledge reply
+            self.styx.addConfig(
+                self.ipop_addr,
+                addr,
+                'keyexchange=ikev2'
+            )
