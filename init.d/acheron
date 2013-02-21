@@ -1,7 +1,7 @@
 ### BEGIN INIT INFO
 # Provides:          acheron
-# Required-Start:    $syslog $localfs $network $named groupvpn.sh
-# Required-Stop:     $syslog $localfs $network $named groupvpn.sh
+# Required-Start:    $syslog $localfs $network $named groupvpn.sh ipsec
+# Required-Stop:     $syslog $localfs $network $named groupvpn.sh ipsec
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: A configuration daemon for strongswan and groupvpn

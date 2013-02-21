@@ -1,0 +1,13 @@
+### BEGIN INIT INFO
+# Provides:          ipsec
+# Required-Start:    $syslog $localfs $network $named
+# Required-Stop:     $syslog $localfs $network $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: A wrapper around the ipsec command
+# Description:       Strongswan is an IPSec daemon that secures things
+### END INIT INFO
+
+IPSEC=/usr/local/sbin/ipsec
+
+$IPSEC "$@"
