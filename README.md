@@ -1,7 +1,7 @@
 Acheron
 =======
 
-In Ancient Greek mythology, [Styx is "the river of
+In Ancient Greek mythology, [Acheron is "the river of
 pain,"](https://en.wikipedia.org/wiki/Acheron) and supposedly joined with the
 Styx in the underworld.
 
