@@ -6,11 +6,20 @@ import socket
 import logging
 import json
 import config
+import sys
 
 log = logging.getLogger('styx')
 
 class Styx(object):
     def __init__(self, path):
+        self._path = path
+        self.socket = None
+        self.__reconnect()
+        self.message_id = 0 # unique message id
+    def __reconnect(self):
+        if self.socket:
+            self.socket.close()
+
         try:
             self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         except:
@@ -18,13 +27,11 @@ class Styx(object):
             sys.exit(1)
 
         try:
-            self.socket.connect(path)
+            self.socket.connect(self._path)
         except:
             log.critical('error connecting to Styx socket. %s does not exist' %
-                         path)
+                         self._path)
             sys.exit(1)
-
-        self.message_id = 0 # must be incremented every call
 
     @staticmethod
     def format(msg):
@@ -42,13 +49,26 @@ class Styx(object):
             'params': args,
             'id': self.message_id,
         }
-        
-        self.socket.sendall(self.format(msg))
-        self.message_id += 1
-        log.info('sent message to Styx: %s' % msg)
 
-        result = json.loads(self.socket.recv(config.styx_message_length))
+        while True:
+            try:
+                self.socket.sendall(self.format(msg))
+                log.info('sent message to Styx: %s' % msg)
+                self.message_id += 1
+                break
+            except socket.error:
+                log.info('socket closed from the other end. Reopening.')
+                self.__reconnect()
+
+        raw_result = self.socket.recv(config.styx_message_length)
+        try:
+            result = json.loads(raw_result)
+        except:
+            log.critical('failed to parse data from styx:\n' +
+                         raw_result)
+            return None
         log.info('received message from Styx: %s' % result)
+        self.__reconnect()
         return result
 
     def __getattr__(self, method):
