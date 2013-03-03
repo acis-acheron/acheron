@@ -57,6 +57,7 @@ class Acheron(Daemon):
         while True:
             # alternatively, push to queue, peek, pop when confirmation received
             addr = self.ipop_listener.recv(16).strip()
+            log.info('received request for connection to %s:' % addr)
             conn_id = self.styx.message_id
 
             self.styx.addConfig(
