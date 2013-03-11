@@ -19,7 +19,7 @@ log = logging.getLogger('acheron')
 class Acheron(Daemon):
     def __init__(self, *args, **kwargs):
         Daemon.__init__(self, *args, **kwargs)
-        self.connections = []
+        self.connections = set()
 
     @staticmethod
     def get_ip_address(ifname):
@@ -63,7 +63,7 @@ class Acheron(Daemon):
                          'to %s' % addr)
                 continue
 
-            self.connections.append(addr)
+            self.connections.add(addr)
             conn_id = self.styx.message_id
 
             self.styx.addConfig(
