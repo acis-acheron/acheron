@@ -39,7 +39,7 @@ class Acheron(Daemon):
         while True:
             try:
                 self.ipop_addr = self.get_ip_address('tapipop')
-                log.info('found IPOP IPv4 address: %s' % self.ipop_addr)
+                log.info('found our IPOP IPv4 address: %s' % self.ipop_addr)
                 break
             except IOError:
                 if sleep_count % 10 == 0:
@@ -57,7 +57,7 @@ class Acheron(Daemon):
 
         while True:
             addr = self.ipop_listener.recv(16).strip()
-            log.info('received request for connection to %s:' % addr)
+            log.info('received request for connection to %s' % addr)
             if addr in self.connections:
                 log.info('discarding request for duplicate connection '
                          'to %s' % addr)
