@@ -19,6 +19,7 @@ log = logging.getLogger('acheron')
 class Acheron(Daemon):
     def __init__(self, *args, **kwargs):
         Daemon.__init__(self, *args, **kwargs)
+        self.connections = []
 
     @staticmethod
     def get_ip_address(ifname):
@@ -55,9 +56,14 @@ class Acheron(Daemon):
         self.ipop_listener.bind((config.ipop_host, config.ipop_port))
 
         while True:
-            # alternatively, push to queue, peek, pop when confirmation received
             addr = self.ipop_listener.recv(16).strip()
             log.info('received request for connection to %s:' % addr)
+            if addr in self.connections:
+                log.info('discarding request for duplicate connection '
+                         'to %s' % addr)
+                continue
+
+            self.connections.append(addr)
             conn_id = self.styx.message_id
 
             self.styx.addConfig(
