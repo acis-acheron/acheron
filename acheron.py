@@ -30,7 +30,6 @@ class Acheron(Daemon):
                 struct.pack('256s', ifname[:15])
                )[20:24])
 
-
     def run(self):
         log.info('starting daemon')
         self.styx = Styx(config.styx_unix_socket_path)
