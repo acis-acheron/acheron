@@ -30,22 +30,39 @@ class Acheron(Daemon):
                 struct.pack('256s', ifname[:15])
                )[20:24])
 
-    def run(self):
-        log.info('starting daemon')
-        self.styx = Styx(config.styx_unix_socket_path)
-        
+    def __get_ipop_addr(self):
         sleep_count = 0
         while True:
             try:
-                self.ipop_addr = self.get_ip_address('tapipop')
-                log.info('found our IPOP IPv4 address: %s' % self.ipop_addr)
-                break
+                ipop_addr = self.get_ip_address('tapipop')
+                log.info('found our IPOP IPv4 address: %s' % ipop_addr)
+                return ipop_addr
             except IOError:
-                if sleep_count % 10 == 0:
+                if sleep_count % 10 == 0: # Keep from flooding our logs
                     log.critical('could not find IPOP IPv4 address. Sleeping.')
                 time.sleep(0.5)
                 sleep_count += 1
-        
+
+    def __get_api(self, name):
+        log.info('using API: %s' % name)
+        if name == 'styx':
+            return StyxApi(
+                config.styx_unix_socket_path,
+            )
+        if name == 'racoon':
+            return Racoon(
+                config.racoon_conf_path, self.ipop_addr, config.cert_path,
+                config.priv_key_path
+            )
+        log.critial('unknown API: %s' % name)
+        raise KeyError(name)
+
+    def run(self):
+        log.info('starting daemon')
+
+        self.ipop_addr = self.__get_ipop_addr()
+        self.api = self.__get_api(config.backend)
+
         try:
             self.ipop_listener = socket.socket(socket.AF_INET,
                                                socket.SOCK_DGRAM)
@@ -61,20 +78,5 @@ class Acheron(Daemon):
                 log.info('discarding request for duplicate connection '
                          'to %s' % addr)
                 continue
-
             self.connections.add(addr)
-            conn_id = self.styx.message_id
-
-            self.styx.addConfig(
-                'conn_%d' % conn_id,
-                self.ipop_addr,
-                addr,
-                'leftcert=myCert.pem',
-                'rightid=%any',
-                'leftid=%any',
-                'keyexchange=ikev2'
-            )
-            self.styx.connect(
-                False,
-                'conn_%d' % conn_id
-            )
+            self.api.add_peer(addr)
