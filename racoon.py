@@ -29,7 +29,10 @@ remote {remote} {{
         dh_group 2;
     }}
     certificate_type x509 "{host_cert}" "{host_key}";
-    exchange_mode aggressive,main;
+    my_identifier asn1dn;
+    verify_identifier on;
+    peers_identifier asn1dn;
+    exchange_mode main;
 }
 
 sainfo {remote} {{
@@ -106,8 +109,12 @@ class Racoon(object):
         it.
         '''
         stdin = StringIO('''
-            spd{sc} {l} {r} any -P out ipsec esp/transport//require;
-            spd{sc} {r} {l} any -P in ipsec esp/transport//require;
+            spd{sc} {l} {r} any -P out ipsec
+                    esp/transport//require
+                    ah/transport//require;
+            spd{sc} {r} {l} any -P in ipsec
+                    esp/transport//require
+                    ah/transport//require;
         '''.format(sc=subcommand, l=self.ipv4_addr, r=ip_address))
         subprocess.check_call('setkey -c', stdin=stdin)
         log.debug('Wrote commands to setkey.\n')
