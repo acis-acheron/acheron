@@ -11,6 +11,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+
 log = logging.getLogger('racoon')
 
 warning_block = '''
@@ -75,7 +76,7 @@ class Racoon(object):
 
     def __config_init(self):
         log.debug('(re)initializing the racoon configuration')
-        with open(racoon_conf_path, 'a') as f:
+        with open(self.racoon_conf_path, 'a') as f:
             f.write(warning_block)
 
     def __config_cleanup(self):
@@ -83,7 +84,7 @@ class Racoon(object):
         Removes our comment and everything after it
         '''
         log.debug('cleaning up the racoon configuration')
-        with open(racoon_conf_path, 'rw') as f:
+        with open(self.racoon_conf_path, 'rw') as f:
             config_body = f.read()
             warning_index = string.rfind(config_body, warning_block)
             if warning_index < 0:
@@ -133,7 +134,7 @@ class Racoon(object):
                 config_file.write(config_template.format(
                     remote=peer, host_cert=e(self.host_cert),
                     host_key=e(self.host_key)
-                )
+                ))
         log.debug('reloading configuration file with racoonctl')
         self.__racoonctl('reload-config')
 
@@ -141,7 +142,7 @@ class Racoon(object):
     def __escape_str(unescaped):
         '''
         Racoon's configuration file might need certain strings to be escaped.
-        This does that by converting a passed string to '\xx' escaped form.
+        This does that by converting a passed string to '\\xx' escaped form.
         '''
         def escape_char(c):
             return '\\{0:x}'.format(ord(c.group(0)))

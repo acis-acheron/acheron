@@ -11,7 +11,9 @@ import array
 import time
 
 from daemon import Daemon
-from styx import Styx
+from styx import StyxApi
+from racoon import Racoon
+
 import config
 
 log = logging.getLogger('acheron')
